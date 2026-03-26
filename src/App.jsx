@@ -281,22 +281,14 @@ function ImageUploader({ image, onUpload, label, zoom = 1, panX = 0, panY = 0, o
       <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} hidden />
       {image ? (
         <>
-          <div className="img-clip">
-            <img
-              src={image}
-              alt={label}
-              className="uploaded-img"
-              style={zoom > 1 || panX !== 0 || panY !== 0 ? {
-                width: `${zoom * 100}%`,
-                height: `${zoom * 100}%`,
-                minWidth: `${zoom * 100}%`,
-                minHeight: `${zoom * 100}%`,
-                objectFit: 'cover',
-                marginLeft: `${-((zoom - 1) * 50) + panX}%`,
-                marginTop: `${-((zoom - 1) * 50) + panY}%`,
-              } : undefined}
-            />
-          </div>
+          <div
+            className="uploaded-img-bg"
+            style={{
+              backgroundImage: `url(${image})`,
+              backgroundSize: `${zoom * 100}%`,
+              backgroundPosition: `${50 - panX}% ${50 - panY}%`,
+            }}
+          />
           <button className="img-adjust-btn" onClick={toggleControls} title="Adjust image">
             <span className="material-symbols-outlined">{showControls ? 'close' : 'tune'}</span>
           </button>
