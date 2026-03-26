@@ -16,7 +16,7 @@ const defaultSlides = [
     quote: 'Family is not an important thing. It\'s everything.',
     icon: 'favorite',
     color: 'primary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null, null],
@@ -32,7 +32,7 @@ const defaultSlides = [
     quote: '',
     icon: 'person',
     color: 'secondary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null, null, null],
@@ -48,7 +48,7 @@ const defaultSlides = [
     quote: '',
     icon: 'diversity_1',
     color: 'tertiary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null, null],
@@ -64,7 +64,7 @@ const defaultSlides = [
     quote: '',
     icon: 'favorite',
     color: 'primary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null],
@@ -80,7 +80,7 @@ const defaultSlides = [
     quote: '',
     icon: 'pets',
     color: 'secondary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null, null, null],
@@ -96,7 +96,7 @@ const defaultSlides = [
     quote: '',
     icon: 'heart_check',
     color: 'secondary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null, null],
@@ -112,7 +112,7 @@ const defaultSlides = [
     quote: '',
     icon: 'volunteer_activism',
     color: 'primary',
-    bgColor: '',
+
     borderColor: '#555555',
     imageShape: 'rectangle',
     images: [null],
@@ -607,9 +607,7 @@ function SlideThankYou({ slide, onTextChange, onImageUpload, onRemoveImage, onTo
   )
 }
 
-function SlideToolbar({ slide, onChangeColor, onChangeBorder, onChangeBg, onChangeLayout, onDuplicate, onDelete, slideCount }) {
-  const bgRef = useRef(null)
-
+function SlideToolbar({ slide, onChangeColor, onChangeBorder, onChangeLayout, onDuplicate, onDelete, slideCount }) {
   return (
     <div className="slide-toolbar">
       <div className="toolbar-group">
@@ -636,26 +634,6 @@ function SlideToolbar({ slide, onChangeColor, onChangeBorder, onChangeBg, onChan
             title={b.label}
           />
         ))}
-      </div>
-
-      <div className="toolbar-group">
-        <span className="toolbar-label">Background</span>
-        <button className="toolbar-btn bg-picker-btn" onClick={() => bgRef.current?.click()}>
-          <span className="bg-preview" style={{ background: slide.bgColor || 'var(--surface-container-low)' }} />
-          <span className="material-symbols-outlined">palette</span>
-        </button>
-        <input
-          ref={bgRef}
-          type="color"
-          value={slide.bgColor || '#f2f0f0'}
-          onChange={(e) => onChangeBg(e.target.value)}
-          className="hidden-color-input"
-        />
-        {slide.bgColor && (
-          <button className="toolbar-btn" onClick={() => onChangeBg('')} title="Reset background">
-            <span className="material-symbols-outlined">restart_alt</span>
-          </button>
-        )}
       </div>
 
       <div className="toolbar-group">
@@ -688,7 +666,6 @@ function SlideToolbar({ slide, onChangeColor, onChangeBorder, onChangeBg, onChan
 function SlideView({ slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape, onImageAdjust }) {
   const props = { slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape, onImageAdjust }
   const style = {
-    ...(slide.bgColor ? { '--slide-bg': slide.bgColor } : {}),
     '--border-color': slide.borderColor || '#555555',
   }
   let content
@@ -891,14 +868,6 @@ export default function App() {
     })
   }
 
-  const handleChangeBg = (slideIndex, bgColor) => {
-    setSlides(prev => {
-      const updated = [...prev]
-      updated[slideIndex] = { ...updated[slideIndex], bgColor }
-      return updated
-    })
-  }
-
   const handleChangeLayout = (slideIndex, layout) => {
     setSlides(prev => {
       const updated = [...prev]
@@ -936,7 +905,7 @@ export default function App() {
       quote: '',
       icon: 'auto_awesome',
       color: 'primary',
-      bgColor: '',
+  
       borderColor: '#555555',
       imageShape: 'rectangle',
       images: Array(needed).fill(null),
@@ -1055,7 +1024,6 @@ export default function App() {
             slideCount={slides.length}
             onChangeColor={(c) => handleChangeColor(current, c)}
             onChangeBorder={(b) => handleChangeBorder(current, b)}
-            onChangeBg={(bg) => handleChangeBg(current, bg)}
             onChangeLayout={(l) => handleChangeLayout(current, l)}
             onDuplicate={() => handleDuplicate(current)}
             onDelete={() => handleDelete(current)}
