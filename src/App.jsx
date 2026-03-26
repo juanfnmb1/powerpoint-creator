@@ -287,7 +287,10 @@ function ImageUploader({ image, onUpload, label, zoom = 1, panX = 0, panY = 0, o
               alt={label}
               className="uploaded-img"
               style={{
-                transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
+                width: `${zoom * 100}%`,
+                height: `${zoom * 100}%`,
+                marginLeft: `${-((zoom - 1) * 50) + panX}%`,
+                marginTop: `${-((zoom - 1) * 50) + panY}%`,
               }}
             />
           </div>
@@ -991,8 +994,8 @@ export default function App() {
         scale: 2,
         useCORS: true,
         backgroundColor: '#f2f0f0',
-        width: 1280,
-        height: 720,
+        width: 1100,
+        height: 619,
       })
       const imgData = canvas.toDataURL('image/png')
       const s = pptx.addSlide()
