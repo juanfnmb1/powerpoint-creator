@@ -224,18 +224,19 @@
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--outline-variant);
   position: relative;
+  container-type: inline-size;
 }
 
 /* ===== Tags ===== */
 .slide-tag {
   display: inline-block;
-  padding: 4px 14px;
+  padding: 0.4cqi 1.4cqi;
   border-radius: 9999px;
-  font-size: 0.6rem;
+  font-size: 1.2cqi;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 1.2cqi;
 }
 
 .tag-primary {
@@ -256,11 +257,11 @@
 /* ===== Typography ===== */
 .slide-heading {
   font-family: 'Noto Serif', serif;
-  font-size: 2.8rem;
+  font-size: 5.5cqi;
   font-weight: 700;
   color: var(--on-primary-container);
   line-height: 1.1;
-  margin-bottom: 10px;
+  margin-bottom: 1cqi;
 }
 
 .serif-italic {
@@ -270,19 +271,19 @@
 }
 
 .slide-subtitle {
-  font-size: 1rem;
+  font-size: 2cqi;
   color: var(--on-surface-variant);
   line-height: 1.5;
-  margin-bottom: 8px;
-  max-width: 420px;
+  margin-bottom: 0.8cqi;
+  max-width: 42cqi;
   font-style: italic;
 }
 
 .slide-details {
-  font-size: 0.8rem;
+  font-size: 1.5cqi;
   color: var(--outline);
   line-height: 1.6;
-  max-width: 400px;
+  max-width: 40cqi;
 }
 
 /* ===== Image Upload Slots ===== */
@@ -321,12 +322,12 @@
 }
 
 .upload-placeholder .material-symbols-outlined {
-  font-size: 32px;
+  font-size: 3cqi;
   color: var(--outline-variant);
 }
 
 .upload-label {
-  font-size: 0.65rem;
+  font-size: 1.2cqi;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -339,7 +340,7 @@
 
 .intro-left {
   width: 50%;
-  padding: 36px 32px;
+  padding: 3.5cqi 3cqi;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -347,11 +348,11 @@
 }
 
 .intro-decoration {
-  margin-top: 20px;
+  margin-top: 2cqi;
 }
 
 .intro-decoration .deco-icon {
-  font-size: 48px;
+  font-size: 5cqi;
   color: var(--primary-container);
   font-variation-settings: 'FILL' 1;
 }
@@ -404,7 +405,7 @@
 .quote-text {
   font-family: 'Noto Serif', serif;
   font-style: italic;
-  font-size: 1.05rem;
+  font-size: 1.8cqi;
   color: var(--on-primary-container);
   line-height: 1.4;
   position: relative;
@@ -413,12 +414,12 @@
 
 /* ===== Shared ===== */
 .content-icon-row {
-  margin-top: 18px;
+  margin-top: 1.8cqi;
 }
 
 .icon-circle {
-  width: 48px;
-  height: 48px;
+  width: 4.5cqi;
+  height: 4.5cqi;
   border-radius: 9999px;
   display: flex;
   align-items: center;
@@ -426,7 +427,7 @@
 }
 
 .icon-circle .material-symbols-outlined {
-  font-size: 24px;
+  font-size: 2.2cqi;
 }
 
 .icon-primary {
@@ -451,7 +452,7 @@
 
 .portrait-left {
   width: 45%;
-  padding: 36px 32px;
+  padding: 3.5cqi 3cqi;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -500,7 +501,7 @@
 
 .overlap-left {
   width: 48%;
-  padding: 36px 32px;
+  padding: 3.5cqi 3cqi;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -544,7 +545,7 @@
 
 .hero-left {
   width: 45%;
-  padding: 36px 32px;
+  padding: 3.5cqi 3cqi;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -580,7 +581,7 @@
 
 .collage-left {
   width: 45%;
-  padding: 36px 32px;
+  padding: 3.5cqi 3cqi;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -640,12 +641,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 28px 40px;
-  max-width: 800px;
+  padding: 3cqi 4cqi;
+  max-width: 80cqi;
 }
 
 .conclusion-heading {
-  font-size: 3.2rem;
+  font-size: 6cqi;
 }
 
 .conclusion-center .slide-subtitle {
@@ -665,8 +666,8 @@
 }
 
 .conclusion-circle {
-  width: 130px;
-  height: 130px;
+  width: 13cqi;
+  height: 13cqi;
   border-radius: 9999px;
   overflow: hidden;
   border: 4px solid var(--secondary-container);
@@ -684,7 +685,7 @@
 }
 
 .conclusion-deco .material-symbols-outlined {
-  font-size: 40px;
+  font-size: 4cqi;
   color: var(--primary-container);
   font-variation-settings: 'FILL' 1;
 }
@@ -971,12 +972,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 40px;
-  max-width: 700px;
+  padding: 3cqi 4cqi;
+  max-width: 70cqi;
 }
 
 .centered-heading {
-  font-size: 3.5rem;
+  font-size: 6.5cqi;
 }
 
 .centered-inner .slide-subtitle {
@@ -997,8 +998,8 @@
 }
 
 .centered-images .image-upload-slot {
-  width: 120px;
-  height: 120px;
+  width: 12cqi;
+  height: 12cqi;
   border-radius: 0.75rem;
 }
 
@@ -1010,13 +1011,13 @@
 }
 
 .thankyou-photo.shape-rect .image-upload-slot {
-  width: 200px;
-  height: 130px;
+  width: 20cqi;
+  height: 13cqi;
 }
 
 .thankyou-photo.shape-square .image-upload-slot {
-  width: 140px;
-  height: 140px;
+  width: 14cqi;
+  height: 14cqi;
   border-radius: 9999px;
 }
 
@@ -1276,18 +1277,6 @@
 
   .slide-wrapper {
     flex: none;
-    width: 100%;
-    overflow: hidden;
-    /* Height matches scaled 16:9 slide */
-    height: calc(100vw * 9 / 16 - 14px);
-  }
-
-  /* Render at fixed 960px and scale down — works on all browsers including iOS Safari */
-  .slide-bg-wrapper {
-    width: 960px;
-    max-width: none;
-    transform: scale(var(--slide-scale, 1));
-    transform-origin: top left;
   }
 
   /* Toolbar compact */

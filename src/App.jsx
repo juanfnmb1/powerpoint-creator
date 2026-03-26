@@ -681,7 +681,6 @@ export default function App() {
   const [exporting, setExporting] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const exportRef = useRef(null)
-  const wrapperRef = useRef(null)
 
   // Load images from IndexedDB on startup
   useEffect(() => {
@@ -706,22 +705,6 @@ export default function App() {
     localStorage.setItem('pptx-name', presentationName)
   }, [presentationName])
 
-  // Compute scale for mobile — slide renders at 960px, zoom to fit
-  useEffect(() => {
-    const updateScale = () => {
-      const el = wrapperRef.current
-      if (!el) return
-      const containerWidth = el.clientWidth
-      if (containerWidth < 960) {
-        el.style.setProperty('--slide-scale', (containerWidth / 960).toFixed(4))
-      } else {
-        el.style.removeProperty('--slide-scale')
-      }
-    }
-    updateScale()
-    window.addEventListener('resize', updateScale)
-    return () => window.removeEventListener('resize', updateScale)
-  }, [current])
 
   const goPrev = () => setCurrent(i => Math.max(0, i - 1))
   const goNext = () => setCurrent(i => Math.min(slides.length - 1, i + 1))
@@ -932,7 +915,7 @@ export default function App() {
         </div>
 
         <div className="main-area">
-          <div className="slide-wrapper" ref={wrapperRef}>
+          <div className="slide-wrapper">
             <SlideView
               slide={slides[current]}
               onTextChange={(field, value) => handleTextChange(current, field, value)}
