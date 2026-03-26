@@ -1278,13 +1278,16 @@
     flex: none;
     width: 100%;
     overflow: hidden;
+    /* Height matches scaled 16:9 slide */
+    height: calc(100vw * 9 / 16 - 14px);
   }
 
-  /* Render at fixed size, zoom to fit — keeps all ratios identical to desktop */
+  /* Render at fixed 960px and scale down — works on all browsers including iOS Safari */
   .slide-bg-wrapper {
     width: 960px;
     max-width: none;
-    zoom: var(--slide-scale, 1);
+    transform: scale(var(--slide-scale, 1));
+    transform-origin: top left;
   }
 
   /* Toolbar compact */
@@ -1374,7 +1377,7 @@
 .export-slide .slide-bg-wrapper {
   width: 1280px;
   max-width: none;
-  zoom: 1 !important;
+  transform: none !important;
 }
 
 .export-slide .slide-canvas {
