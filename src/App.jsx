@@ -189,8 +189,12 @@ function EditableText({ value, onChange, className, tag: Tag = 'span', placehold
   )
 }
 
-function ImageUploader({ image, onUpload, label }) {
+function ImageUploader({ image, onUpload, label, zoom = 1, panX = 0, panY = 0, onAdjust }) {
   const inputRef = useRef(null)
+  const [showControls, setShowControls] = useState(false)
+  const [touching, setTouching] = useState(false)
+  const touchRef = useRef({ lastDist: 0, lastX: 0, lastY: 0, startZoom: 1, startPanX: 0, startPanY: 0 })
+  const slotRef = useRef(null)
 
   const handleFile = (e) => {
     const file = e.target.files[0]
@@ -200,11 +204,113 @@ function ImageUploader({ image, onUpload, label }) {
     reader.readAsDataURL(file)
   }
 
+  const handleSlotClick = () => {
+    if (showControls || touching) return
+    inputRef.current?.click()
+  }
+
+  const toggleControls = (e) => {
+    e.stopPropagation()
+    setShowControls(v => !v)
+  }
+
+  const adjust = (field, value) => {
+    if (onAdjust) onAdjust({ zoom, panX, panY, [field]: value })
+  }
+
+  // Touch: pinch to zoom, drag to pan
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 900
+
+  const getTouchDist = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX
+    const dy = touches[0].clientY - touches[1].clientY
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+
+  const handleTouchStart = (e) => {
+    if (!onAdjust) return
+    e.stopPropagation()
+    const t = touchRef.current
+    if (e.touches.length === 2) {
+      t.lastDist = getTouchDist(e.touches)
+      t.startZoom = zoom
+    } else if (e.touches.length === 1) {
+      t.lastX = e.touches[0].clientX
+      t.lastY = e.touches[0].clientY
+      t.startPanX = panX
+      t.startPanY = panY
+    }
+    setTouching(true)
+  }
+
+  const handleTouchMove = (e) => {
+    if (!onAdjust) return
+    e.stopPropagation()
+    e.preventDefault()
+    const t = touchRef.current
+    if (e.touches.length === 2) {
+      const dist = getTouchDist(e.touches)
+      const scale = dist / t.lastDist
+      const newZoom = Math.min(3, Math.max(1, t.startZoom * scale))
+      onAdjust({ zoom: newZoom, panX, panY })
+    } else if (e.touches.length === 1) {
+      const dx = e.touches[0].clientX - t.lastX
+      const dy = e.touches[0].clientY - t.lastY
+      const rect = slotRef.current?.getBoundingClientRect()
+      const w = rect?.width || 200
+      const newPanX = Math.min(30, Math.max(-30, t.startPanX + (dx / w) * 50))
+      const newPanY = Math.min(30, Math.max(-30, t.startPanY + (dy / w) * 50))
+      onAdjust({ zoom, panX: newPanX, panY: newPanY })
+    }
+  }
+
+  const handleTouchEnd = (e) => {
+    e.stopPropagation()
+    setTimeout(() => setTouching(false), 100)
+  }
+
   return (
-    <div className="image-upload-slot" onClick={() => inputRef.current?.click()}>
+    <div
+      className="image-upload-slot"
+      ref={slotRef}
+      onClick={handleSlotClick}
+      onTouchStart={image && isMobile && showControls ? handleTouchStart : undefined}
+      onTouchMove={image && isMobile && showControls ? handleTouchMove : undefined}
+      onTouchEnd={image && isMobile && showControls ? handleTouchEnd : undefined}
+    >
       <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} hidden />
       {image ? (
-        <img src={image} alt={label} className="uploaded-img" />
+        <>
+          <div className="img-clip">
+            <img
+              src={image}
+              alt={label}
+              className="uploaded-img"
+              style={{
+                transform: `scale(${zoom}) translate(${panX}%, ${panY}%)`,
+              }}
+            />
+          </div>
+          <button className="img-adjust-btn" onClick={toggleControls} title="Adjust image">
+            <span className="material-symbols-outlined">{showControls ? 'close' : 'tune'}</span>
+          </button>
+          {showControls && !isMobile && (
+            <div className="img-controls" onClick={e => e.stopPropagation()}>
+              <div className="img-control-row">
+                <span className="material-symbols-outlined ctrl-icon">zoom_in</span>
+                <input type="range" min="1" max="3" step="0.05" value={zoom} onChange={e => adjust('zoom', +e.target.value)} />
+              </div>
+              <div className="img-control-row">
+                <span className="material-symbols-outlined ctrl-icon">swap_horiz</span>
+                <input type="range" min="-30" max="30" step="1" value={panX} onChange={e => adjust('panX', +e.target.value)} />
+              </div>
+              <div className="img-control-row">
+                <span className="material-symbols-outlined ctrl-icon">swap_vert</span>
+                <input type="range" min="-30" max="30" step="1" value={panY} onChange={e => adjust('panY', +e.target.value)} />
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="upload-placeholder">
           <span className="material-symbols-outlined">add_photo_alternate</span>
@@ -213,6 +319,17 @@ function ImageUploader({ image, onUpload, label }) {
       )}
     </div>
   )
+}
+
+// Helper to get adjust props for an image index
+function getAdjustProps(slide, index, onImageAdjust) {
+  const adj = slide.imageAdjust?.[index] || {}
+  return {
+    zoom: adj.zoom || 1,
+    panX: adj.panX || 0,
+    panY: adj.panY || 0,
+    onAdjust: onImageAdjust ? (data) => onImageAdjust(index, data) : undefined,
+  }
 }
 
 function SlideThumb({ slide, isActive, onClick, index }) {
@@ -234,7 +351,7 @@ function SlideThumb({ slide, isActive, onClick, index }) {
   )
 }
 
-function SlideIntro({ slide, onTextChange, onImageUpload }) {
+function SlideIntro({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-intro">
       <div className="intro-left">
@@ -251,8 +368,8 @@ function SlideIntro({ slide, onTextChange, onImageUpload }) {
       </div>
       <div className="intro-right">
         <div className="bento-images intro-bento">
-          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Main Photo" />
-          <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Second Photo" />
+          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Main Photo" />
+          <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Second Photo" />
           <div className="bento-quote">
             <span className="material-symbols-outlined quote-bg-icon">format_quote</span>
             <EditableText value={slide.quote} onChange={(v) => onTextChange('quote', v)} className="quote-text" tag="p" placeholder="Add a quote..." />
@@ -263,7 +380,7 @@ function SlideIntro({ slide, onTextChange, onImageUpload }) {
   )
 }
 
-function SlidePortrait({ slide, onTextChange, onImageUpload }) {
+function SlidePortrait({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-portrait">
       <div className="portrait-left">
@@ -279,21 +396,21 @@ function SlidePortrait({ slide, onTextChange, onImageUpload }) {
       <div className="portrait-right">
         <div className="portrait-accents">
           <div className="portrait-accent-slot">
-            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Photo 1" />
+            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Photo 1" />
           </div>
           <div className="portrait-accent-slot">
-            <ImageUploader image={slide.images[2]} onUpload={(data) => onImageUpload(2, data)} label="Photo 2" />
+            <ImageUploader image={slide.images[2]} onUpload={(data) => onImageUpload(2, data)} {...getAdjustProps(slide, 2, onImageAdjust)} label="Photo 2" />
           </div>
         </div>
         <div className="portrait-main">
-          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Main Photo" />
+          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Main Photo" />
         </div>
       </div>
     </div>
   )
 }
 
-function SlideOverlap({ slide, onTextChange, onImageUpload }) {
+function SlideOverlap({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-overlap">
       <div className="overlap-left">
@@ -314,10 +431,10 @@ function SlideOverlap({ slide, onTextChange, onImageUpload }) {
       <div className="overlap-right">
         <div className="overlap-stack">
           <div className="overlap-card overlap-back">
-            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Photo 2" />
+            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Photo 2" />
           </div>
           <div className="overlap-card overlap-front">
-            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Photo 1" />
+            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Photo 1" />
           </div>
         </div>
       </div>
@@ -325,7 +442,7 @@ function SlideOverlap({ slide, onTextChange, onImageUpload }) {
   )
 }
 
-function SlideHero({ slide, onTextChange, onImageUpload }) {
+function SlideHero({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-hero">
       <div className="hero-left">
@@ -345,14 +462,14 @@ function SlideHero({ slide, onTextChange, onImageUpload }) {
       </div>
       <div className="hero-right">
         <div className="hero-bubble">
-          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Photo" />
+          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Photo" />
         </div>
       </div>
     </div>
   )
 }
 
-function SlideCollage({ slide, onTextChange, onImageUpload }) {
+function SlideCollage({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-collage">
       <div className="collage-left">
@@ -373,13 +490,13 @@ function SlideCollage({ slide, onTextChange, onImageUpload }) {
       <div className="collage-right">
         <div className="collage-grid">
           <div className="collage-tall">
-            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Photo 1" />
+            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Photo 1" />
           </div>
           <div className="collage-top">
-            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Photo 2" />
+            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Photo 2" />
           </div>
           <div className="collage-bottom">
-            <ImageUploader image={slide.images[2]} onUpload={(data) => onImageUpload(2, data)} label="Photo 3" />
+            <ImageUploader image={slide.images[2]} onUpload={(data) => onImageUpload(2, data)} {...getAdjustProps(slide, 2, onImageAdjust)} label="Photo 3" />
           </div>
         </div>
       </div>
@@ -387,7 +504,7 @@ function SlideCollage({ slide, onTextChange, onImageUpload }) {
   )
 }
 
-function SlideConclusion({ slide, onTextChange, onImageUpload }) {
+function SlideConclusion({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-conclusion">
       <div className="conclusion-center">
@@ -401,10 +518,10 @@ function SlideConclusion({ slide, onTextChange, onImageUpload }) {
         <EditableText value={slide.details} onChange={(v) => onTextChange('details', v)} className="slide-details" tag="p" placeholder="Add details..." />
         <div className="conclusion-images">
           <div className="conclusion-circle">
-            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Family Photo" />
+            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Family Photo" />
           </div>
           <div className="conclusion-circle">
-            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Favorite Memory" />
+            <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Favorite Memory" />
           </div>
         </div>
         <div className="conclusion-deco">
@@ -416,7 +533,7 @@ function SlideConclusion({ slide, onTextChange, onImageUpload }) {
 }
 
 // Centered layout — text only, optional add-image button
-function SlideCentered({ slide, onTextChange, onImageUpload }) {
+function SlideCentered({ slide, onTextChange, onImageUpload, onImageAdjust }) {
   return (
     <div className="slide-canvas slide-centered">
       <div className="centered-inner">
@@ -430,8 +547,8 @@ function SlideCentered({ slide, onTextChange, onImageUpload }) {
         <EditableText value={slide.details} onChange={(v) => onTextChange('details', v)} className="slide-details" tag="p" placeholder="Add details..." />
 
         <div className="centered-images">
-          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Photo 1" />
-          <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} label="Photo 2" />
+          <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Photo 1" />
+          <ImageUploader image={slide.images[1]} onUpload={(data) => onImageUpload(1, data)} {...getAdjustProps(slide, 1, onImageAdjust)} label="Photo 2" />
         </div>
 
         <div className="conclusion-deco">
@@ -460,7 +577,7 @@ function UploadTextBtn({ onUpload }) {
 }
 
 // Text Only layout — centered text with one optional image
-function SlideThankYou({ slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape }) {
+function SlideThankYou({ slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape, onImageAdjust }) {
   const hasImage = slide.images[0]
   const isSquare = slide.imageShape === 'square'
   return (
@@ -479,7 +596,7 @@ function SlideThankYou({ slide, onTextChange, onImageUpload, onRemoveImage, onTo
             <button className="photo-shape-toggle" onClick={onToggleShape} title="Toggle shape">
               <span className="material-symbols-outlined">{isSquare ? 'crop_landscape' : 'circle'}</span>
             </button>
-            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} label="Photo" />
+            <ImageUploader image={slide.images[0]} onUpload={(data) => onImageUpload(0, data)} {...getAdjustProps(slide, 0, onImageAdjust)} label="Photo" />
           </div>
         ) : (
           <UploadTextBtn onUpload={(data) => onImageUpload(0, data)} />
@@ -570,8 +687,8 @@ function SlideToolbar({ slide, onChangeColor, onChangeBorder, onChangeBg, onChan
   )
 }
 
-function SlideView({ slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape }) {
-  const props = { slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape }
+function SlideView({ slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape, onImageAdjust }) {
+  const props = { slide, onTextChange, onImageUpload, onRemoveImage, onToggleShape, onImageAdjust }
   const style = {
     ...(slide.bgColor ? { '--slide-bg': slide.bgColor } : {}),
     '--border-color': slide.borderColor || '#555555',
@@ -720,6 +837,16 @@ export default function App() {
         images[imageIndex] = dataUrl
       }
       updated[slideIndex] = { ...updated[slideIndex], images }
+      return updated
+    })
+  }
+
+  const handleImageAdjust = (slideIndex, imageIndex, adjustData) => {
+    setSlides(prev => {
+      const updated = [...prev]
+      const imageAdjust = { ...(updated[slideIndex].imageAdjust || {}) }
+      imageAdjust[imageIndex] = adjustData
+      updated[slideIndex] = { ...updated[slideIndex], imageAdjust }
       return updated
     })
   }
@@ -922,6 +1049,7 @@ export default function App() {
               onImageUpload={(imgIdx, data) => handleImageUpload(current, imgIdx, data)}
               onRemoveImage={(imgIdx) => handleRemoveImage(current, imgIdx)}
               onToggleShape={() => handleChangeShape(current, slides[current].imageShape === 'square' ? 'rectangle' : 'square')}
+              onImageAdjust={(imgIdx, adj) => handleImageAdjust(current, imgIdx, adj)}
             />
           </div>
           <SlideToolbar
