@@ -286,12 +286,15 @@ function ImageUploader({ image, onUpload, label, zoom = 1, panX = 0, panY = 0, o
               src={image}
               alt={label}
               className="uploaded-img"
-              style={{
+              style={zoom > 1 || panX !== 0 || panY !== 0 ? {
                 width: `${zoom * 100}%`,
                 height: `${zoom * 100}%`,
+                minWidth: `${zoom * 100}%`,
+                minHeight: `${zoom * 100}%`,
+                objectFit: 'cover',
                 marginLeft: `${-((zoom - 1) * 50) + panX}%`,
                 marginTop: `${-((zoom - 1) * 50) + panY}%`,
-              }}
+              } : undefined}
             />
           </div>
           <button className="img-adjust-btn" onClick={toggleControls} title="Adjust image">
