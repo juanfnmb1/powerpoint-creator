@@ -15,7 +15,6 @@ A simple web app that lets you build a presentation right in your browser and do
 - **Change themes** — swap between Rose, Purple, and Green color themes per slide
 - **Switch layouts** — change a slide's layout anytime from the toolbar
 - **Add slides** — insert new slides and pick a template from the layout picker
-- **Line breaks** — press Enter to add multiple lines of text in any field
 - **Pixel-perfect export** — the download screenshots each slide so it matches the preview exactly
 
 ## Tech
